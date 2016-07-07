@@ -35,8 +35,6 @@ Since Let's Encrypt is usually an option that can be turned off, the wrapper all
 
 And finally, *technically*, none of the file names shown above are actually necessary. The only needed fields are Domains and TOSCallback. Without the given file names, acmewrapper runs in-memory. Beware, though: if you do that, you might run into rate limiting from Let's Encrypt if you restart too often!
 
-**WARNING:** This code literally JUST started working. Do NOT use it anywhere important before it has some time to mature.
-
 ## How It Works
 
 Let's Encrypt has SNI support for domain validation. That means we can update our certificate if we control the TLS configuration of a server. That is exactly what acmewrapper does. Not only does it transparently update your server's certificate, but it uses its control of SNI to pass validation tests.
@@ -141,6 +139,35 @@ func main() {
 }
 ```
 
+## Custom File Handlers
+
+While ACMEWrapper saves certificates to the filesystem by default, you can save all relevant files in your database by overloading the read and write functions
+
+```go
+w, err := acmewrapper.New(acmewrapper.Config{
+		Domains: []string{"example.com","www.example.com"},
+		Address: ":443",
+
+		TLSCertFile: "CERTIFICATE",
+		TLSKeyFile:  "TLSKEY",
+
+		RegistrationFile: "REGISTRATION",
+		PrivateKeyFile:   "PRIVATEKEY",
+
+		TOSCallback: acmewrapper.TOSAgree,
+		
+		SaveFileCallback: func(path string, contents []byte) error {
+			// the path is the file name as set up in the configuration - the certificate will be "CERTIFICATE", etc.
+		},
+		// If this callback does not find the file at the provided path, it must return os.ErrNotExist.
+		// If this callback returns acmewrapper.ErrNotHandled, it will fallback to load file from disk.
+		LoadFileCallback func(path string) (contents []byte, err error) {
+			return os.ErrNotExist
+		},
+	})
+
+```
+
 ## Testing
 
 Running the tests is a bit of a chore, since it requires a valid domain name, and access to port 443.
@@ -150,20 +177,9 @@ To test on your own server, you need to change the domain name to your domain, a
 that will be routed to 443:
 
 ```bash
-sudo iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 8443
-export TLSADDRESS=":8443"
+go test -c
+sudo setcap cap_net_bind_service=+ep acmewrapper.test
+export TLSADDRESS=":443"
 export DOMAIN_NAME="example.com"
-go test
+./acmewrapper.test
 ```
-
-To delete the port forwarding rule, find it in your tables
-```bash
-sudo iptables -t nat --line-numbers -n -L
-```
-
-And delete the number that it was at
-```bash
-iptables -t nat -D PREROUTING 2
-```
-
-(This is based on http://serverfault.com/questions/112795/how-can-i-run-a-server-on-linux-on-port-80-as-a-normal-user)
