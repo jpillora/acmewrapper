@@ -3,6 +3,7 @@
 Add Let's Encrypt support to your golang server in 10 lines of code.
 
 [![GoDoc](https://godoc.org/github.com/dkumor/acmewrapper?status.svg)](https://godoc.org/github.com/dkumor/acmewrapper)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dkumor/acmewrapper)](https://goreportcard.com/report/github.com/dkumor/acmewrapper)
 [![Build Status](https://travis-ci.org/dkumor/acmewrapper.svg?branch=master)](https://travis-ci.org/dkumor/acmewrapper)
 
 ```go
@@ -155,7 +156,7 @@ w, err := acmewrapper.New(acmewrapper.Config{
 		PrivateKeyFile:   "PRIVATEKEY",
 
 		TOSCallback: acmewrapper.TOSAgree,
-		
+
 		SaveFileCallback: func(path string, contents []byte) error {
 			// the path is the file name as set up in the configuration - the certificate will be "CERTIFICATE", etc.
 		},

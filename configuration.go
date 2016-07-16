@@ -7,18 +7,21 @@ import (
 )
 
 const (
-	// The server to use by default
+	// DefaultServer is the server to use by default
 	DefaultServer = "https://acme-v01.api.letsencrypt.org/directory"
-	// Default type for the private key
+	// DefaultKeyType represents the type for the private key
 	DefaultKeyType = acme.RSA2048
 
-	// The default port to use for initializing certs on startup
+	// DefaultAddress is thedefault port to use for initializing certs on startup
 	DefaultAddress = ":443"
 
 	// DefaultRenewTime is the time period before cert expiration to attempt renewal
-	DefaultRenewTime  = 30 * 24 * time.Hour
-	DefaultRetryDelay = 1 * 24 * time.Hour // Retry once a day
-	DefaultRenewCheck = 12 * time.Hour     // The time between checks for renewal
+	DefaultRenewTime = 30 * 24 * time.Hour
+	// DefaultRetryDelay is the time between renew attempts after a previous attempt failed
+	DefaultRetryDelay = 1 * 24 * time.Hour
+	// DefaultRenewCheck is the time between checks of the certificate to make sure it doesn't
+	// need to be renewed
+	DefaultRenewCheck = 12 * time.Hour
 )
 
 // TOSAgree always agrees to the terms of service. This should only be really used if
@@ -73,13 +76,13 @@ type Config struct {
 
 	RenewTime  time.Duration // The time in seconds until expiration of current cert that renew is attempted. If not set, default is 30d
 	RetryDelay time.Duration // The time in seconds to delay between attempts at renewing if renewal fails. (1 day)
-	RenewCheck time.Duration // The time inbetween checks for renewal. Default is 12h
+	RenewCheck time.Duration // The time between checks for renewal. Default is 12h
 
 	// The callback to use prompting the user to agree to the terms of service. A special Agree is built in, so
 	// you can set TOSCallback: TOSAgree
 	TOSCallback TOSCallback
 
-	// If there is no certificate set up at all, we need to generate an inital one
+	// If there is no certificate set up at all, we need to generate an initial one
 	// to jump-start the server. Therefore, you should input the port that you
 	// will use when running listen. If there are no certs, it runs a temporary mini
 	// server at that location to generate initial certificates. Once that is done,

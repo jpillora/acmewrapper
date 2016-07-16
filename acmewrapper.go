@@ -10,11 +10,12 @@ import (
 	"github.com/xenolf/lego/acme"
 )
 
+// LoggerInterface represents anything that can Printf.
 type LoggerInterface interface {
 	Printf(format string, v ...interface{})
 }
 
-// Allows to use a custom logger for logging purposes
+// Logger allows to use a custom logger for logging purposes
 var Logger LoggerInterface
 
 func logf(s string, v ...interface{}) {

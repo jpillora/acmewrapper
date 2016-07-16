@@ -1,6 +1,7 @@
 package acmewrapper
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -11,6 +12,24 @@ import (
 
 	"github.com/xenolf/lego/acme"
 )
+
+// generateKey generates a key to use for registration in acme
+func generateKey(keytype acme.KeyType) (crypto.PrivateKey, error) {
+	switch keytype {
+	case acme.RSA2048:
+		return rsa.GenerateKey(rand.Reader, 2048)
+	case acme.RSA4096:
+		return rsa.GenerateKey(rand.Reader, 4096)
+	case acme.RSA8192:
+		return rsa.GenerateKey(rand.Reader, 8192)
+	case acme.EC256:
+		return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	case acme.EC384:
+		return ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	default:
+		return nil, errors.New("Unrecognized key type")
+	}
+}
 
 // initACME initailizes the acme client - it does everything from reading/writing the
 // user private key and registration files, to ensuring that the user is registered
@@ -79,19 +98,7 @@ func (w *AcmeWrapper) initACME(serverRunning bool) (err error) {
 		// Whatever the case, we generate our acme user
 
 		// Generate the key
-		if w.Config.PrivateKeyType == acme.RSA2048 {
-			w.privatekey, err = rsa.GenerateKey(rand.Reader, 2048)
-		} else if w.Config.PrivateKeyType == acme.RSA4096 {
-			w.privatekey, err = rsa.GenerateKey(rand.Reader, 4096)
-		} else if w.Config.PrivateKeyType == acme.RSA8192 {
-			w.privatekey, err = rsa.GenerateKey(rand.Reader, 8192)
-		} else if w.Config.PrivateKeyType == acme.EC256 {
-			w.privatekey, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		} else if w.Config.PrivateKeyType == acme.EC384 {
-			w.privatekey, err = ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
-		} else {
-			return errors.New("Unrecognized key type")
-		}
+		w.privatekey, err = generateKey(w.Config.PrivateKeyType)
 		if err != nil {
 			return err
 		}
@@ -157,7 +164,7 @@ func (w *AcmeWrapper) initACME(serverRunning bool) (err error) {
 		}
 	}
 
-	// Now that the user and client basics are intialized, we set up the client
+	// Now that the user and client basics are initialized, we set up the client
 	// so that it uses our custom SNI provider. We don't want
 	// to start custom servers, but rather plug into our certificate updater once
 	// we are running. This allows cert updates to be transparent.

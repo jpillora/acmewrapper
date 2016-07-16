@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 )
 
+// ErrNotHandled is returned by read and write file callbacks if the file should be
+// read from filesystem.
 var ErrNotHandled = errors.New("not handled")
 
 func (w *AcmeWrapper) loadFile(path string) ([]byte, error) {
@@ -39,4 +41,3 @@ func (w *AcmeWrapper) saveFile(path string, contents []byte) error {
 	}
 	return nil
 }
-
