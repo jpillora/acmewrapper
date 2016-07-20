@@ -55,8 +55,22 @@ func tlsCert(crt acme.CertificateResource) (*tls.Certificate, error) {
 	return &cert, err
 }
 
+// checks if a is a subset of b
+func arraySubset(a []string, b []string) bool {
+	if len(a) > len(b) {
+		return false
+	}
+	for _, i := range a {
+		if !stringInSlice(i, b) {
+			return false
+		}
+	}
+	return true
+}
+
 // CertNeedsUpdate returns whether the current certificate either
-// does not exist, or is <X days from expiration, where X is set up in config
+// does not exist, or is <X days from expiration, where X is set up in config,
+// or does not match the domains set up in configuration.
 func (w *AcmeWrapper) CertNeedsUpdate() bool {
 	if w.cert == nil {
 		// The cert doesn't exist - it certainly needs update
@@ -64,7 +78,11 @@ func (w *AcmeWrapper) CertNeedsUpdate() bool {
 	}
 
 	// w.cert.Leaf is not set, so we have to manually parse the certs
-	// and make sure that they don't expire soon
+	// and make sure that they don't expire soon.
+	// We also create a list of the domains in our certifiate, to make sure
+	// that the cert is for the correct ones!
+	domains := []string{}
+
 	for _, c := range w.cert.Certificate {
 		crt, err := x509.ParseCertificate(c)
 		if err != nil {
@@ -75,7 +93,10 @@ func (w *AcmeWrapper) CertNeedsUpdate() bool {
 		if timeLeft < w.Config.RenewTime {
 			return true
 		}
+		domains = append(domains, crt.DNSNames...)
 	}
 
-	return false
+	// Now make sure that the domains in our config are entirely contained in the
+	// domains that this cert handles
+	return !arraySubset(w.Config.Domains, domains)
 }
