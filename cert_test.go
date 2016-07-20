@@ -129,3 +129,75 @@ func TestCert(t *testing.T) {
 	w.Config.RenewTime = 30 * time.Hour
 	listener.Close()
 }
+
+// We now test to make sure that if the domain is changed,
+// the cert is changed
+func TestDomainChange(t *testing.T) {
+	os.Remove("cert.crt")
+	os.Remove("key.pem")
+	newdomains := []string{"www." + TESTDOMAINS[0], TESTDOMAINS[0]}
+
+	domainchanged := false
+
+	// First set up the domain cert
+	_, err := New(Config{
+		Server:           TESTAPI,
+		TOSCallback:      TOSAgree,
+		Domains:          TESTDOMAINS,
+		PrivateKeyFile:   "testinguser.key",
+		RegistrationFile: "testinguser.reg",
+		Address:          TLSADDRESS,
+
+		TLSCertFile: "cert.crt",
+		TLSKeyFile:  "key.pem",
+
+		RenewCallback: func() {
+			domainchanged = true
+		},
+	})
+
+	require.NoError(t, err)
+	require.True(t, domainchanged)
+
+	// Now running again will not renew
+	domainchanged = false
+	// First set up the domain cert
+	_, err = New(Config{
+		Server:           TESTAPI,
+		TOSCallback:      TOSAgree,
+		Domains:          TESTDOMAINS,
+		PrivateKeyFile:   "testinguser.key",
+		RegistrationFile: "testinguser.reg",
+		Address:          TLSADDRESS,
+
+		TLSCertFile: "cert.crt",
+		TLSKeyFile:  "key.pem",
+
+		RenewCallback: func() {
+			domainchanged = true
+		},
+	})
+	require.NoError(t, err)
+	require.False(t, domainchanged)
+
+	// Finally, we run one more time, but this time we change the domains - and check to see if renew is called
+	// Now running again will not call domainchanged
+	domainchanged = false
+	_, err = New(Config{
+		Server:           TESTAPI,
+		TOSCallback:      TOSAgree,
+		Domains:          newdomains,
+		PrivateKeyFile:   "testinguser.key",
+		RegistrationFile: "testinguser.reg",
+		Address:          TLSADDRESS,
+
+		TLSCertFile: "cert.crt",
+		TLSKeyFile:  "key.pem",
+
+		RenewCallback: func() {
+			domainchanged = true
+		},
+	})
+	require.NoError(t, err)
+	require.True(t, domainchanged)
+}
