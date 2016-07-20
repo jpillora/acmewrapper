@@ -98,5 +98,5 @@ func (w *AcmeWrapper) CertNeedsUpdate() bool {
 
 	// Now make sure that the domains in our config are entirely contained in the
 	// domains that this cert handles
-	return !arraySubset(domains, w.Config.Domains)
+	return !arraySubset(w.Config.Domains, domains)
 }

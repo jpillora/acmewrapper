@@ -154,7 +154,7 @@ func (w *AcmeWrapper) initACME(serverRunning bool) (err error) {
 	//  We start a quick custom server
 	// to get the initial certificates. In the future, we will use our custom SNI provider
 	// to not need a custom server (and not have any downtime) while updating
-	if w.CertNeedsUpdate() && !serverRunning {
+	if !serverRunning && w.CertNeedsUpdate() {
 		// Renew sets the config mutex, so unset it now
 		w.Unlock()
 		err = w.Renew()
@@ -176,7 +176,7 @@ func (w *AcmeWrapper) initACME(serverRunning bool) (err error) {
 	// between the above version and this one is that we use the custom provider if
 	// the server is already active rather than starting a new server.
 
-	if w.CertNeedsUpdate() && serverRunning {
+	if serverRunning && w.CertNeedsUpdate() {
 		w.Unlock()
 		err = w.Renew()
 		w.Lock()
