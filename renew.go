@@ -64,7 +64,7 @@ func (w *AcmeWrapper) Renew() (err error) {
 
 	// TODO: In the future, figure out how to get renewals working with
 	// the information we have
-	cert, errmap := w.client.ObtainCertificate(w.Config.Domains, true, nil, false)
+	cert, errmap := w.client.ObtainCertificate(w.Config.Domains, true, nil)
 	err = getCertError(errmap)
 
 	if err != nil {
@@ -86,7 +86,7 @@ func (w *AcmeWrapper) Renew() (err error) {
 		}
 
 		// We agreed to new TOS. try again
-		cert, errmap = w.client.ObtainCertificate(w.Config.Domains, true, nil, false)
+		cert, errmap = w.client.ObtainCertificate(w.Config.Domains, true, nil)
 		err = getCertError(errmap)
 		if err != nil {
 			return err

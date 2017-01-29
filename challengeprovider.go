@@ -14,16 +14,16 @@ func (c *wrapperChallengeProvider) Present(domain, token, keyAuth string) error 
 	logf("[acmewrapper] Started SNI server modification for %s", domain)
 
 	// Use ACME's SNI challenge cert maker. How nice that it is exported :)
-	cert, challengedomain, err := acme.TLSSNI01ChallengeCert(keyAuth)
+	cert, err := acme.TLSSNI01ChallengeCert(keyAuth)
 	if err != nil {
 		return err
 	}
 
 	// Add the cert to our AcmeWrapper. here, the names is the special SNI challenge domain
 	// in the form "<Zi[0:32]>.<Zi[32:64]>.acme.invalid"
-	c.w.AddSNI(challengedomain, &cert)
+	c.w.AddSNI(domain, &cert)
 
-	c.challengeDomain = challengedomain
+	c.challengeDomain = domain
 
 	return nil
 
